@@ -32,10 +32,13 @@ class Email_Swiftmailer extends Email {
 		$this->_mailer = $this->_swift();
 	}
 	
-	public function _send($email, $name, $data, $code)
+	public function _send($recipient_email, $recipient_name, $message_id, $data)
 	{
 		$view_html = clone $this->_template_html;
-		$view_html->set($data);
+		$view_html->set($data)
+			->set('message_id', $message_id)
+			->set('recipient_email', $recipient_email)
+			->set('recipient_name', $recipient_name);
 		
 		static $message = NULL;
 		
@@ -43,15 +46,15 @@ class Email_Swiftmailer extends Email {
 		{
 			$message = Swift_Message::newInstance()
 				->setCharset(Kohana::$charset)
-				->setFrom(array($view_html->from_address => $view_html->from_name))
-				->setReplyTo($view_html->reply_to);
+				->setFrom(array($view_html->sender_email() => $view_html->sender_name()))
+				->setReplyTo($view_html->reply_to());
 		}
 		
-		$message->setReturnPath($view_html->return_path);
+		$message->setReturnPath($view_html->return_path());
 
 		$message->attach(new Swift_MimePart($view_html->render(), 'text/html'))
-			->addTo($email, $name)
-			->setSubject($view_html->subject);
+			->addTo($recipient_email, $recipient_name)
+			->setSubject($view_html->subject());
 		
 		$this->_mailer->send($message);
 		

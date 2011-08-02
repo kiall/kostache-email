@@ -118,25 +118,25 @@ class Email {
 	 */
 	public function send()
 	{
-		foreach ($this->_to as $email => $x)
+		foreach ($this->_to as $recipient_email => $x)
 		{
-			list ($name, $data) = $x;
+			list ($recipient_name, $data) = $x;
 			
-			$code = Text::random('alnum', 25);
+			$message_id = Text::random('alnum', 50);
 			
 			list($insert_id, $affected_rows) = DB::insert('email_audit', array(
-				'to',
-				'code',
-				'type',
+				'recipient_email',
+				'message_id',
+				'template',
 				'created',
 			))->values(array(
-				$email,
-				$code,
+				$recipient_email,
+				$message_id,
 				$this->_template_name,
 				time(),
 			))->execute();
 		
-			$this->_send($email, $name, $data, $code);
+			$this->_send($recipient_email, $recipient_name, $message_id, $data);
 		}
 		
 		return $this;
